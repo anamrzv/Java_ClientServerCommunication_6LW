@@ -1,6 +1,7 @@
 package itmo.lab.commands;
 
 import itmo.lab.server.CollectionsKeeper;
+import itmo.lab.server.CommandHandler;
 
 import java.util.Map;
 

@@ -6,7 +6,7 @@ import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-public class CollectionsKeeper {
+public class OtherCollections {
 
     /**
      * Поле - отображение объектов Location

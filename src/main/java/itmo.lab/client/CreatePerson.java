@@ -21,9 +21,9 @@ public class CreatePerson {
      */
     private Map<Integer, Location> readyLocations;
 
-    private final CollectionsKeeper dc;
+    private final OtherCollections dc;
 
-    public CreatePerson(CollectionsKeeper dc) {
+    public CreatePerson(OtherCollections dc) {
         this.dc=dc;
     }
 
@@ -129,7 +129,7 @@ public class CreatePerson {
      * @param br - буферный поток ввода
      * @param dc - обработчик команд
      */
-    public void addLocation(BufferedReader br, CollectionsKeeper dc) throws IOException {
+    public void addLocation(BufferedReader br, OtherCollections dc) throws IOException {
         Location l = new Location();
         int x;
         float y;

@@ -1,11 +1,12 @@
 package itmo.lab.server;
 
-import javax.net.ServerSocketFactory;
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
-import java.net.ServerSocket;
-import java.net.Socket;
+import java.net.InetSocketAddress;
+import java.net.SocketAddress;
+import java.nio.channels.ServerSocketChannel;
+import java.nio.channels.SocketChannel;
 
 public class ServerConnection {
 
@@ -23,10 +24,12 @@ public class ServerConnection {
     }
 
     static class ServerListener extends Thread {
-        private final ServerSocket socket;
+        private final ServerSocketChannel ssChannel;
 
         public ServerListener() throws IOException {
-            socket = ServerSocketFactory.getDefault().createServerSocket(4004);
+            SocketAddress a = new InetSocketAddress(4004);
+            ssChannel = ServerSocketChannel.open();
+            ssChannel.socket().bind(a);
         }
 
         @Override
@@ -34,9 +37,9 @@ public class ServerConnection {
             while (listenerIsAlive) {
                 System.out.println("Wait connections...");
                 try {
-                    Socket clientSocket = socket.accept();
-                    System.out.println("New connection created, address:" + clientSocket.getInetAddress());
-                    new ClientHandler(clientSocket).start();
+                    SocketChannel socketChannel = ssChannel.accept();
+                    System.out.println("New connection created");
+                    new ClientHandler(socketChannel).start();
                 } catch (IOException e) {
                     e.printStackTrace();
                     listenerIsAlive = false;
@@ -46,22 +49,24 @@ public class ServerConnection {
     }
 
     static class ClientHandler extends Thread {
-        private final Socket socket;
+        private final SocketChannel sChannel;
         private final ObjectInputStream inputStream;
         private final ObjectOutputStream outputStream;
 
-        public ClientHandler(Socket socket) throws IOException {
-            this.socket = socket;
-            outputStream = new ObjectOutputStream(socket.getOutputStream());
-            inputStream = new ObjectInputStream(socket.getInputStream());
+        public ClientHandler(SocketChannel sChannel) throws IOException {
+            this.sChannel = sChannel;
+            outputStream = new ObjectOutputStream(sChannel.socket().getOutputStream());
+            inputStream = new ObjectInputStream(sChannel.socket().getInputStream());
         }
 
         @Override
         public void run() {
-            while (socket.isConnected()) {
+            while (sChannel.isConnected()) {
                 try {
-                    Object o = inputStream.readObject(); // need correct cast to server object
-                    System.out.println("Client object: " + o);
+                    ServerObject so = (ServerObject) inputStream.readObject(); // need correct cast to server object
+
+                    System.out.println("Client object: " + so);
+
                     outputStream.writeObject("Hello"); // send here answer to client
                     outputStream.flush();
                 } catch (Exception e) {

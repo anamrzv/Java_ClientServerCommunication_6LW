@@ -10,7 +10,6 @@ public class InputHandler {
     private final HashSet<String> names = new HashSet<>();
 
     {
-        CollectionsKeeper ck = new CollectionsKeeper();
         names.add("add_if_max");
         names.add("add_if__min");
         names.add("clear");
