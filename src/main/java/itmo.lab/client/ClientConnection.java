@@ -1,15 +1,13 @@
 package itmo.lab.client;
 
-import java.io.IOException;
-import java.io.ObjectInputStream;
-import java.io.ObjectOutputStream;
+import java.io.*;
 import java.net.Socket;
 import java.net.UnknownHostException;
 
 public class ClientConnection {
     private static Socket clientSocket;
-    private static ObjectOutputStream out;
-    private static ObjectInputStream in;
+    private static OutputStream out;
+    private static InputStream in;
 
     public static void main(String[] args) {
         try {
@@ -18,19 +16,18 @@ public class ClientConnection {
                 clientSocket = new Socket("localhost", 4004);
                 System.out.println("Создан сокет");
 
-                ObjectOutputStream out = new ObjectOutputStream(clientSocket.getOutputStream());
-                ObjectInputStream in = new ObjectInputStream(clientSocket.getInputStream());
+                out = clientSocket.getOutputStream();
+                in = clientSocket.getInputStream();
 
                 System.out.println("Клиент запущен");
 
                 while (clientSocket.isConnected()) {
                     try {
-                        ServerObject so = ih.setStart();
-
-                        out.writeObject(so); // пишем сообщение (команда и ее аргументы) на сервер
+                        byte[] jsonBytes = ih.setStart();
+                        out.write(jsonBytes);
                         out.flush();
 
-                        String serverAnswer = (String) in.readObject(); //ждем ответ сервера, т.е. строку-результат выполненной команды
+                        int serverAnswer = in.read(); //ждем ответ сервера, т.е. строку-результат выполненной команды
                         System.out.println(serverAnswer);
                     } catch (Exception e) {
                         System.out.println(e.getMessage());

@@ -11,6 +11,7 @@ import itmo.lab.other.Person;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.util.List;
 import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -27,14 +28,14 @@ public class CreatePerson {
         this.dc=dc;
     }
 
-    private Person createPerson(String[] args){
+    private Person createPerson(List<String> args){
         Person newPers = new Person();
         readyLocations = dc.getLocations();
 
         if (args == null) {
             System.out.println("У команды add должен быть один аргумент - слово 'Person' или строка формата json. Введите команду снова.");
             return null;
-        } else if (args.length == 1 && args[0].equalsIgnoreCase("Person")) {
+        } else if (args.size() == 1 && args.get(0).equalsIgnoreCase("Person")) {
             try {
                 BufferedReader br = new BufferedReader(new InputStreamReader(System.in));
                 System.out.println("Вы выбрали добавление элемента вручную через консоль.");
@@ -68,14 +69,14 @@ public class CreatePerson {
                 System.out.println("Ошибка при чтении данных");
                 return null;
             }
-        } else if (args.length == 1) {
+        } else if (args.size() == 1) {
             String regex = "\\{.+}";
             Pattern pattern = Pattern.compile(regex);
-            Matcher m = pattern.matcher(args[0]);
+            Matcher m = pattern.matcher(args.get(0));
             boolean isJson = m.matches();
             if (isJson) {
                 System.out.println("Вы выбрали автоматическое добавление элемента через строку в формате json.");
-                String jsonLine = args[0];
+                String jsonLine = args.get(0);
                 try {
                     GsonBuilder builder = new GsonBuilder();
                     Gson gson = builder.create();
@@ -483,7 +484,7 @@ public class CreatePerson {
         inputCoordinates(br, p);
     }
 
-    public Person setCreation(String[] args){
+    public Person setCreation(List<String> args){
         return createPerson(args);
     }
 }

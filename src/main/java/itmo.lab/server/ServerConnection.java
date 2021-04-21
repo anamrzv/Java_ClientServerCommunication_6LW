@@ -1,10 +1,14 @@
 package itmo.lab.server;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+import itmo.lab.other.Message;
+
 import java.io.IOException;
-import java.io.ObjectInputStream;
-import java.io.ObjectOutputStream;
+import java.io.InputStream;
+import java.io.OutputStream;
 import java.net.InetSocketAddress;
 import java.net.SocketAddress;
+import java.nio.ByteBuffer;
 import java.nio.channels.ServerSocketChannel;
 import java.nio.channels.SocketChannel;
 
@@ -50,29 +54,31 @@ public class ServerConnection {
 
     static class ClientHandler extends Thread {
         private final SocketChannel sChannel;
-        private final ObjectInputStream inputStream;
-        private final ObjectOutputStream outputStream;
+        private final InputStream inputStream;
+        private final OutputStream outputStream;
 
         public ClientHandler(SocketChannel sChannel) throws IOException {
             this.sChannel = sChannel;
-            outputStream = new ObjectOutputStream(sChannel.socket().getOutputStream());
-            inputStream = new ObjectInputStream(sChannel.socket().getInputStream());
+            outputStream = sChannel.socket().getOutputStream();
+            inputStream = sChannel.socket().getInputStream();
         }
 
         @Override
         public void run() {
-            while (sChannel.isConnected()) {
+            while (sChannel.isOpen()) {
                 try {
-                    ServerObject so = (ServerObject) inputStream.readObject(); // need correct cast to server object
+                    ObjectMapper objectMapper = new ObjectMapper();
+                    Message newMessage = objectMapper.readValue(inputStream, Message.class);//неправильно
+                    System.out.println("Client object: " + newMessage);
 
-                    System.out.println("Client object: " + so);
-
-                    outputStream.writeObject("Hello"); // send here answer to client
-                    outputStream.flush();
+                    //outputStream.writeObject("Hello"); // send here answer to client
+                    //outputStream.flush();
                 } catch (Exception e) {
                     try {
                         inputStream.close();
                         outputStream.close();
+                        sChannel.close();
+                        e.printStackTrace();
                     } catch (IOException ioException) {
                         ioException.printStackTrace();
                     }

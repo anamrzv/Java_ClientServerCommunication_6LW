@@ -1,15 +1,23 @@
 package itmo.lab.client;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+import itmo.lab.other.Message;
+import itmo.lab.other.Person;
+
 import java.io.BufferedReader;
 import java.io.InputStreamReader;
-import java.io.Serializable;
+import java.util.Arrays;
 import java.util.HashSet;
+import java.util.List;
+import java.util.stream.Collectors;
 
 public class InputHandler {
 
     private final HashSet<String> names = new HashSet<>();
+    private final OtherCollections collections;
 
     {
+        collections = new OtherCollections();
         names.add("add_if_max");
         names.add("add_if__min");
         names.add("clear");
@@ -26,7 +34,7 @@ public class InputHandler {
         names.add("update");
     }
 
-    private ServerObject run() {
+    private byte[] run() {
         do {
             try {
                 System.out.print(">");
@@ -37,9 +45,15 @@ public class InputHandler {
                     System.exit(0);
                 } else {
                     String cmd = getCommandName(input);
-                    String[] args = getArguments(input);
+                    List<String> args = getArguments(input);
                     if (names.contains(cmd)) {
-                        return new ServerObject(cmd, args);
+                        ObjectMapper objectMapper = new ObjectMapper();
+                        if (cmd.equals("add")) {
+                            CreatePerson creation = new CreatePerson(collections);
+                            Person newPerson = creation.setCreation(args);
+                            return objectMapper.writeValueAsBytes(new Message("add", newPerson));
+                        }
+                        return objectMapper.writeValueAsBytes(new Message(cmd, args));
                     } else {
                         System.out.println("Пожалуйста, повторите ввод: команда не распознана");
                     }
@@ -67,16 +81,14 @@ public class InputHandler {
      * @param input - строка
      * @return String[] - аргументы команды
      */
-    public String[] getArguments(String input) {
-        String[] elements = input.split(" +");
-        if (elements.length > 1) {
-            String[] args = new String[elements.length - 1];
-            System.arraycopy(elements, 1, args, 0, args.length);
-            return args;
+    public List<String> getArguments(String input) {
+        List<String> elements = Arrays.stream(input.split(" +")).collect(Collectors.toList());
+        if (elements.size() > 1) {
+            return elements.stream().skip(0).collect(Collectors.toList());
         } else return null;
     }
 
-    public ServerObject setStart() {
+    public byte[] setStart() {
         return run();
     }
 }
