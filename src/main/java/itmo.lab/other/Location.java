@@ -1,11 +1,22 @@
 package itmo.lab.other;
 
+import lombok.Data;
+import lombok.Getter;
+import lombok.Setter;
+
+import java.io.Serializable;
 import java.util.Objects;
 
 /**
  * Местоположение персоны в формате (x;y;z)
  */
-public class Location {
+@Getter
+@Setter
+@Data
+public class Location implements Serializable {
+
+    private static final long serialVersionUID = 5L;
+
     /**
      * Поле - координата х
      */
@@ -58,7 +69,6 @@ public class Location {
         this.z = z;
         if (!name.equals("")) this.name = name;
     }
-
 
     /**
      * Метод - представляет объект в строковом виде

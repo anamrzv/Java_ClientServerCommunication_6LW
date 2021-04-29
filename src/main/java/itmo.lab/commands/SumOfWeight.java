@@ -1,9 +1,11 @@
 package itmo.lab.commands;
 
 import itmo.lab.other.Person;
-import itmo.lab.server.CollectionsKeeper;
+import itmo.lab.other.CollectionsKeeper;
+import itmo.lab.other.ServerResponse;
 
 import java.util.LinkedList;
+import java.util.List;
 
 /**
  * Команда выводит сумму поля 'weight' всех объектов коллекции
@@ -26,18 +28,16 @@ public class SumOfWeight extends Command {
      * @return true/false Успешно ли завершилась команда
      */
     @Override
-    public boolean execute(String... args) {
+    public ServerResponse execute(List<String> args) {
         if (args == null) {
             LinkedList<Person> people = dc.getPeople();
             long sum = 0;
             for (Person p : people) {
                 sum += p.getWeight();
             }
-            System.out.println(sum + " - сумма значений поля weight всех элементов коллекции");
-            return true;
+            return ServerResponse.builder().message(sum + " - сумма значений поля weight всех элементов коллекции").command("sum_of_weoght").build();
         } else {
-            System.out.println("У команды sum_of_weight нет аргументов. Введите команду еще раз.");
-            return false;
+            return ServerResponse.builder().error("У команды sum_of_weight нет аргументов. Введите команду еще раз.").command("sum_of_weight").build();
         }
     }
 

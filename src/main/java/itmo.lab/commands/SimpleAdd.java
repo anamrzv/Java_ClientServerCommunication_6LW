@@ -1,10 +1,12 @@
 package itmo.lab.commands;
 
+import itmo.lab.other.CollectionsKeeper;
 import itmo.lab.other.Person;
-import itmo.lab.server.CollectionsKeeper;
+import itmo.lab.other.ServerResponse;
 
 import java.util.Collections;
 import java.util.LinkedList;
+import java.util.List;
 
 /**
  * Команда добавляет элемент в коллекцию либо через меню выбора, либо интерпретируя строку json
@@ -12,7 +14,6 @@ import java.util.LinkedList;
 public class SimpleAdd extends Command {
 
     private final Person person;
-
     private final LinkedList<Person> people = dc.getPeople();
 
     /**
@@ -20,10 +21,9 @@ public class SimpleAdd extends Command {
      *
      * @param dc - обработчик команд
      */
-    public SimpleAdd(CollectionsKeeper dc, String[] args) {
+    public SimpleAdd(CollectionsKeeper dc, Person person) {
         super(dc);
-        CreatePerson cp = new CreatePerson(dc);
-        person = cp.setCreation(args);
+        this.person = person;
     }
 
     /**
@@ -32,12 +32,10 @@ public class SimpleAdd extends Command {
      * @param args Параметры командной строки
      * @return true/false Успешно ли завершилась команда
      */
-    public boolean execute(String... args) {
+    public ServerResponse execute(List<String> args) {
         people.add(person);
         Collections.sort(people);
-        int i = people.indexOf(person);
-        dc.setLastPersonNum(i);
-        return true;
+        return ServerResponse.builder().message("Объект успешно добавлен").command("add").build();
     }
 
     @Override
@@ -47,6 +45,6 @@ public class SimpleAdd extends Command {
 
     @Override
     public String getDescription() {
-        return null;
+        return "add person: добавить новый элемент в коллекцию, ввод вручную\nadd json_element : добавить новый элемент в коллекцию, автоматическая обработка строки json";
     }
 }

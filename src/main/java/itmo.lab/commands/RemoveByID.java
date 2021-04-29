@@ -1,10 +1,12 @@
 package itmo.lab.commands;
 
 import itmo.lab.other.Person;
-import itmo.lab.server.CollectionsKeeper;
+import itmo.lab.other.CollectionsKeeper;
+import itmo.lab.other.ServerResponse;
 
 import java.util.Iterator;
 import java.util.LinkedList;
+import java.util.List;
 
 
 /**
@@ -28,20 +30,18 @@ public class RemoveByID extends Command {
      * @return true/false Успешно ли завершилась команда
      */
     @Override
-    public boolean execute(String... args) {
+    public ServerResponse execute(List<String> args) {
         if (args != null) {
-            if (args.length != 1) {
-                System.out.println("У команды remove_by_id должен быть ровно один аргумент - ID персоны. Введите команду снова.");
-                return false;
+            if (args.size() != 1) {
+                return ServerResponse.builder().error("У команды remove_by_id должен быть ровно один аргумент - ID персоны. Введите команду снова.").command("remove_by_id").build();
             }
             Long id;
             boolean result = false;
             try {
-                id = Long.parseLong(args[0]);
-                if (id < 0) return false;
+                id = Long.parseLong(args.get(0));
+                if (id < 0) return ServerResponse.builder().error("ID не может быть отрицательным числом. Введите команду снова.").command("count_less_than_passport_id").build();
             } catch (Exception e) {
-                System.out.println("В качестве аргумента должна быть передана строка из цифр. Введите команду снова.");
-                return false;
+                return ServerResponse.builder().error("В качестве аргумента должна быть передана строка из цифр. Введите команду снова.").command("count_less_than_passport_id").build();
             }
             LinkedList<Person> people = dc.getPeople();
             Iterator<Person> iter = people.iterator();
@@ -51,12 +51,10 @@ public class RemoveByID extends Command {
                     result = true;
                 }
             }
-            if (!result) System.out.println("Элемента с таким ID нет в коллекции.");
-            else System.out.println("Объект с ID " + id + " успешно удален из коллекции.");
-            return true;
+            if (!result) return ServerResponse.builder().message("Элемента с таким ID нет в коллекции.").command("count_less_than_passport_id").build();
+            else return ServerResponse.builder().message("Объект с ID " + id + " успешно удален из коллекции.").command("count_less_than_passport_id").build();
         } else {
-            System.out.println("У команды remove_by_id должен быть один аргумент - ID персоны. Введите команду снова.");
-            return false;
+            return ServerResponse.builder().error("У команды remove_by_id должен быть один аргумент - ID персоны. Введите команду снова.").command("count_less_than_passport_id").build();
         }
     }
 

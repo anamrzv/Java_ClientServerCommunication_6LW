@@ -1,12 +1,21 @@
-package itmo.lab.client;
+package itmo.lab.other;
 
-import itmo.lab.other.Location;
+import lombok.Data;
 
+import java.io.Serializable;
 import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-public class OtherCollections {
+@Data
+public class CollectionsKeeper implements Serializable {
+
+    private static final long serialVersionUID = 2L;
+
+    /**
+     * Поле - связный список объектов Person
+     */
+    private final LinkedList<Person> people = new LinkedList<>();
 
     /**
      * Поле - отображение объектов Location
@@ -18,6 +27,20 @@ public class OtherCollections {
      */
     public void addLocation(Location l) {
         readyLocations.put(readyLocations.size() + 1, l);
+    }
+
+    /**
+     * Поле - TreeSet объектов String для обработки рекурсии в execute_script
+     */
+    private final Set<String> scriptNames = new TreeSet<>();
+
+    /**
+     * Метод - геттер коллекции людей
+     *
+     * @return LinkedList<Person> коллекция
+     */
+    public LinkedList<Person> getPeople() {
+        return people;
     }
 
     /**
@@ -49,5 +72,17 @@ public class OtherCollections {
         Pattern pattern = Pattern.compile("^[0-9]+$");
         Matcher m = pattern.matcher(pass);
         return m.matches();
+    }
+
+    public Set<String> getScriptNames(){
+        return scriptNames;
+    }
+
+    public boolean addScriptName(String name){
+        return scriptNames.add(name);
+    }
+
+    public void clearScriptNames(){
+        scriptNames.clear();
     }
 }

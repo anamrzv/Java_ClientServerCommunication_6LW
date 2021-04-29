@@ -1,9 +1,11 @@
 package itmo.lab.commands;
 
 import itmo.lab.other.Person;
-import itmo.lab.server.CollectionsKeeper;
+import itmo.lab.other.CollectionsKeeper;
+import itmo.lab.other.ServerResponse;
 
 import java.util.LinkedList;
+import java.util.List;
 
 /**
  * Команда выводит первый элемент коллекции
@@ -31,18 +33,15 @@ public class Head extends Command {
      * @return true/false Успешно ли завершилась команда
      */
     @Override
-    public boolean execute(String... args) {
+    public ServerResponse execute(List<String> args) {
         if (args == null) {
             people = dc.getPeople();
-            if (people.size() == 0) System.out.println("Коллекция пуста, нельзя вывести первый элемент");
+            if (people.size() == 0) return ServerResponse.builder().message("Коллекция пуста, нельзя вывести первый элемент").command("head").build();
             else {
-                System.out.println("Первый элемент отсортированной коллекции: ");
-                System.out.println(people.get(0));
+                return ServerResponse.builder().message("Первый элемент отсортированной коллекции: \n"+people.get(0)).command("head").build();
             }
-            return true;
         } else {
-            System.out.println("У команы head нет аргументов. Введите команду снова.");
-            return false;
+            return ServerResponse.builder().error("У команы head нет аргументов. Введите команду снова.").command("head").build();
         }
     }
 

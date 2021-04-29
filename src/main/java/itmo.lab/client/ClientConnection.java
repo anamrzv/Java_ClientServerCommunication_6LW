@@ -1,18 +1,30 @@
 package itmo.lab.client;
 
-import java.io.*;
+import com.fasterxml.jackson.databind.DeserializationFeature;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.SerializationFeature;
+import itmo.lab.other.CollectionsKeeper;
+import itmo.lab.other.Message;
+import itmo.lab.other.ServerResponse;
+
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
 import java.net.Socket;
 import java.net.UnknownHostException;
+import java.nio.ByteBuffer;
 
 public class ClientConnection {
     private static Socket clientSocket;
     private static OutputStream out;
     private static InputStream in;
 
+    private static final ObjectMapper OBJECT_MAPPER = new ObjectMapper().findAndRegisterModules().configure(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS, false).configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
+
     public static void main(String[] args) {
         try {
             try {
-                InputHandler ih = new InputHandler();
+                InputHandler ih = null;
                 clientSocket = new Socket("localhost", 4004);
                 System.out.println("Создан сокет");
 
@@ -21,14 +33,36 @@ public class ClientConnection {
 
                 System.out.println("Клиент запущен");
 
+                ByteBuffer buffer = ByteBuffer.allocate(4096);
+                if (clientSocket.isConnected()) {
+                    try {
+                        buffer.clear();
+                        int serverAnswer = in.read(buffer.array());
+                        if (serverAnswer > 0) {
+                            CollectionsKeeper ck = OBJECT_MAPPER.readValue(buffer.array(), CollectionsKeeper.class);
+                            ih = new InputHandler(ck);
+                        }
+                        buffer.flip();
+                    } catch (Exception e) {
+                        System.out.println(e.getMessage());
+                    }
+                }
                 while (clientSocket.isConnected()) {
                     try {
-                        byte[] jsonBytes = ih.setStart();
-                        out.write(jsonBytes);
+                        Message message = ih.setStart();
+                        if (message == null) continue;
+                        out.write(OBJECT_MAPPER.writeValueAsBytes(message));
                         out.flush();
 
-                        int serverAnswer = in.read(); //ждем ответ сервера, т.е. строку-результат выполненной команды
-                        System.out.println(serverAnswer);
+                        buffer.clear();
+                        int serverAnswer = in.read(buffer.array());
+                        if (serverAnswer > 0) {
+                            ServerResponse sr = OBJECT_MAPPER.readValue(buffer.array(), ServerResponse.class);
+                            if (sr.getError()==null) {
+                                System.out.println(sr.getMessage());
+                            } else System.out.println(sr.getError());
+                        }
+                        buffer.flip();
                     } catch (Exception e) {
                         System.out.println(e.getMessage());
                     }

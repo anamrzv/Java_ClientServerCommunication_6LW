@@ -3,6 +3,7 @@ package itmo.lab.client;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.JsonSyntaxException;
+import itmo.lab.other.CollectionsKeeper;
 import itmo.lab.other.Color;
 import itmo.lab.other.Coordinates;
 import itmo.lab.other.Location;
@@ -22,15 +23,15 @@ public class CreatePerson {
      */
     private Map<Integer, Location> readyLocations;
 
-    private final OtherCollections dc;
+    private final CollectionsKeeper collectionsKeeper;
 
-    public CreatePerson(OtherCollections dc) {
-        this.dc=dc;
+    public CreatePerson(CollectionsKeeper dc) {
+        this.collectionsKeeper =dc;
     }
 
     private Person createPerson(List<String> args){
         Person newPers = new Person();
-        readyLocations = dc.getLocations();
+        readyLocations = collectionsKeeper.getLocations();
 
         if (args == null) {
             System.out.println("У команды add должен быть один аргумент - слово 'Person' или строка формата json. Введите команду снова.");
@@ -84,10 +85,10 @@ public class CreatePerson {
                     if (pers.getName() == null || pers.getPassportID() == null || pers.getHairColor() == null || pers.getLocation() == null || pers.getCoordinates() == null) {
                         System.out.println("Проверьте, что заполнены все обязательны поля: name, passport id, hair color, location, coordinates, а в поле hair color правильно указан цвет.\nВведите команду снова с правильными данными.");
                         return null;
-                    } else if (!dc.validateName(pers.getName())) {
+                    } else if (!collectionsKeeper.validateName(pers.getName())) {
                         System.out.println("В имени не могут содержаться цифры и спец. знаки.\nВведите команду снова с правильными данными.");
                         return null;
-                    } else if (!dc.validatePassport(pers.getPassportID())) {
+                    } else if (!collectionsKeeper.validatePassport(pers.getPassportID())) {
                         System.out.println("В passport id должны содержаться только цифры.\nВведите команду снова с правильными данными.");
                         return null;
                     } else if (pers.getPassportID().length() < 10 || pers.getPassportID().length() > 27) {
@@ -130,7 +131,7 @@ public class CreatePerson {
      * @param br - буферный поток ввода
      * @param dc - обработчик команд
      */
-    public void addLocation(BufferedReader br, OtherCollections dc) throws IOException {
+    public void addLocation(BufferedReader br, CollectionsKeeper dc) throws IOException {
         Location l = new Location();
         int x;
         float y;
@@ -216,7 +217,7 @@ public class CreatePerson {
             try {
                 System.out.print(">");
                 String name = br.readLine().trim();
-                boolean hasNoDigit = dc.validateName(name);
+                boolean hasNoDigit = collectionsKeeper.validateName(name);
                 if (name.equals(""))
                     System.out.println("Нельзя ввести пустую строку в это поле, пожалуйста, введите данные.");
                 else if (!hasNoDigit)
@@ -336,7 +337,7 @@ public class CreatePerson {
             do {
                 System.out.print(">");
                 String passport = br.readLine().trim();
-                boolean hasNoLetter = dc.validatePassport(passport);
+                boolean hasNoLetter = collectionsKeeper.validatePassport(passport);
                 if (passport.equals(""))
                     System.out.println("Нельзя ввести пустую строку в данное поле, пожалуйста, введите данные.");
                 else if (passport.length() > 27 || passport.length() < 10)
@@ -420,7 +421,7 @@ public class CreatePerson {
         int num;
         if (readyLocations.size() == 0) {
             System.out.println("Пока не существует готовых местоположений. Добавьте одно.");
-            addLocation(br, dc);
+            addLocation(br, collectionsKeeper);
         }
         do {
             try {
@@ -433,7 +434,7 @@ public class CreatePerson {
                 }
                 num = enterSomeNumber(br);
                 if (num == 0) {
-                    addLocation(br, dc);
+                    addLocation(br, collectionsKeeper);
                 }
                 if (num < 0 || num > readyLocations.size()) {
                     System.out.println("Был введен неправильный номер. Введите номер от 0 до " + readyLocations.size());

@@ -1,5 +1,8 @@
 package itmo.lab.other;
 
+import lombok.Data;
+
+import java.io.Serializable;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.Objects;
@@ -7,7 +10,11 @@ import java.util.Objects;
 /**
  * Персона, обладающая некоторыми характеристиками.
  */
-public class Person implements Comparable<Person> {
+@Data
+public class Person implements Comparable<Person>, Serializable {
+
+    private static final long serialVersionUID = 6L;
+
     /**
      * Поле - id
      * Поле не может быть null, Значение поля должно быть больше 0,

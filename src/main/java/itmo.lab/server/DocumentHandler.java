@@ -3,6 +3,7 @@ package itmo.lab.server;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.JsonSyntaxException;
+import itmo.lab.other.CollectionsKeeper;
 import itmo.lab.other.Location;
 import itmo.lab.other.Person;
 
@@ -28,7 +29,7 @@ public class DocumentHandler {
     /**
      * Поле - обработчик командз
      */
-    private final CollectionsKeeper dc;
+    private final CollectionsKeeper collectionsKeeper;
 
     /**
      * Поле - отображение объектов Location
@@ -43,12 +44,12 @@ public class DocumentHandler {
     /**
      * Конструктор - создание нового объекта
      *
-     * @param dc - класс-хранилище коллекций
+     * @param ck - класс-хранилище коллекций
      */
-    public DocumentHandler(CollectionsKeeper dc) {
-        people=dc.getPeople();
-        readyLocations = dc.getLocations();
-        this.dc = dc;
+    public DocumentHandler(CollectionsKeeper ck) {
+        people = ck.getPeople();
+        readyLocations = ck.getLocations();
+        this.collectionsKeeper = ck;
     }
 
     /**
@@ -56,7 +57,7 @@ public class DocumentHandler {
      */
     private void read() {
         try {
-            String homeDir = System.getenv("start5");
+            String homeDir = System.getenv("start6");
             Path path = Paths.get(homeDir);
             File file = new File(homeDir);
 
@@ -77,11 +78,11 @@ public class DocumentHandler {
                             printErrorMsg(num, jsonLine, file);
                             System.out.println("Проверьте, что заполнены все обязательны поля: name, passport id, hair color, location, coordinates, а в поле hair color правильно указан цвет.");
                             System.exit(0);
-                        } else if (!dc.validateName(pers.getName())) {
+                        } else if (!collectionsKeeper.validateName(pers.getName())) {
                             printErrorMsg(num, jsonLine, file);
                             System.out.println("В имени не могут содержаться цифры и спец. знаки");
                             System.exit(0);
-                        } else if (!dc.validatePassport(pers.getPassportID())) {
+                        } else if (!collectionsKeeper.validatePassport(pers.getPassportID())) {
                             printErrorMsg(num, jsonLine, file);
                             System.out.println("В passport id должны содержаться только цифры.");
                             System.exit(0);

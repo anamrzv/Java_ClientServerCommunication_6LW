@@ -1,10 +1,12 @@
 package itmo.lab.commands;
 
 import itmo.lab.other.Person;
-import itmo.lab.server.CollectionsKeeper;
+import itmo.lab.other.CollectionsKeeper;
+import itmo.lab.other.ServerResponse;
 
 import java.util.Collections;
 import java.util.LinkedList;
+import java.util.List;
 
 /**
  * Команда выводит в консоль все элементы коллекции в строковом представлении
@@ -27,21 +29,20 @@ public class Show extends Command {
      * @return true/false Успешно ли завершилась команда
      */
     @Override
-    public boolean execute(String... args) {
+    public ServerResponse execute(List<String> args) {
+        String response="Коллекция People:\n";
         if (args == null) {
             LinkedList<Person> people = dc.getPeople();
-            if (people.size() == 0) System.out.println("Коллекция People пуста.");
+            if (people.size() == 0) return ServerResponse.builder().message("Коллекция People пуста.").command("show").build();
             else {
                 Collections.sort(people);
-                System.out.println("Коллекция People:");
                 for (Person p : people) {
-                    System.out.println(p);
+                    response+=p+"\n";
                 }
             }
-            return true;
+            return ServerResponse.builder().message(response).command("show").build();
         } else {
-            System.out.println("У команды show нет аргументов. Введите команду снова.");
-            return false;
+            return ServerResponse.builder().error("У команды show нет аргументов. Введите команду снова.").command("show").build();
         }
     }
 

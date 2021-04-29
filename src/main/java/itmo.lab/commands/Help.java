@@ -1,8 +1,10 @@
 package itmo.lab.commands;
 
-import itmo.lab.server.CollectionsKeeper;
+import itmo.lab.other.CollectionsKeeper;
+import itmo.lab.other.ServerResponse;
 import itmo.lab.server.CommandHandler;
 
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -28,18 +30,18 @@ public class Help extends Command {
      * @param args Параметры командной строки
      * @return true/false Успешно ли завершилась команда
      */
-    public boolean execute(String... args) {
+    public ServerResponse execute(List<String> args) {
         if (args == null) {
             Map<String, Command> commands = ch.getCommands();
-            System.out.println("Доступные вам команды:");
+            String response = "Доступные вам команды:\n";
             for (Command c : commands.values()) {
-                System.out.println(c.getDescription());
+                response+=c.getDescription()+"\n";
             }
-            System.out.println("add {element} : добавить новый элемент в коллекцию");
-            return true;
+            response+="add {json_element} : добавить новый элемент в коллекцию";
+            return ServerResponse.builder().message(response).command("help").build();
         } else {
-            System.out.println("У команды help нет аргументов. Введите команду снова.");
-            return false;
+            return ServerResponse.builder().error("У команды help нет аргументов. Введите команду снова.").command("help").build();
+
         }
     }
 

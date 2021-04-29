@@ -1,13 +1,15 @@
 package itmo.lab.server;
 
+import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.SerializationFeature;
+import itmo.lab.other.CollectionsKeeper;
 import itmo.lab.other.Message;
+import itmo.lab.other.ServerResponse;
+import lombok.SneakyThrows;
 
 import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
 import java.net.InetSocketAddress;
-import java.net.SocketAddress;
 import java.nio.ByteBuffer;
 import java.nio.channels.ServerSocketChannel;
 import java.nio.channels.SocketChannel;
@@ -15,13 +17,15 @@ import java.nio.channels.SocketChannel;
 public class ServerConnection {
 
     private static boolean listenerIsAlive = true;
+    private static final ObjectMapper OBJECT_MAPPER = new ObjectMapper().findAndRegisterModules().configure(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS, false).configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
+    private static final CollectionsKeeper collectionsKeeper = new CollectionsKeeper(); // главная коллекция людей!!!
 
     public static void main(String[] args) {
         ServerListener serverListener;
         try {
             serverListener = new ServerListener();
-            serverListener.start();
             System.out.println("Server started");
+            serverListener.start();
         } catch (IOException e) {
             e.printStackTrace();
         }
@@ -31,22 +35,34 @@ public class ServerConnection {
         private final ServerSocketChannel ssChannel;
 
         public ServerListener() throws IOException {
-            SocketAddress a = new InetSocketAddress(4004);
             ssChannel = ServerSocketChannel.open();
-            ssChannel.socket().bind(a);
+            ssChannel.configureBlocking(false);
+            ssChannel.socket().bind(new InetSocketAddress(4004));
         }
 
         @Override
         public void run() {
             while (listenerIsAlive) {
-                System.out.println("Wait connections...");
                 try {
                     SocketChannel socketChannel = ssChannel.accept();
-                    System.out.println("New connection created");
-                    new ClientHandler(socketChannel).start();
+                    if (socketChannel != null) {
+                        System.out.printf("New connection created: %s%n", socketChannel.getRemoteAddress());
+                        DocumentHandler dh = new DocumentHandler(collectionsKeeper);
+                        try {
+                            dh.setRead();
+                        } catch (Exception e) {
+                            e.printStackTrace();
+                        }
+                        new ClientHandler(socketChannel).start();
+                    }
                 } catch (IOException e) {
-                    e.printStackTrace();
-                    listenerIsAlive = false;
+                    try {
+                        e.printStackTrace();
+                        listenerIsAlive = false;
+                        ssChannel.close();
+                    } catch (IOException ioException) {
+                        ioException.printStackTrace();
+                    }
                 }
             }
         }
@@ -54,36 +70,57 @@ public class ServerConnection {
 
     static class ClientHandler extends Thread {
         private final SocketChannel sChannel;
-        private final InputStream inputStream;
-        private final OutputStream outputStream;
 
-        public ClientHandler(SocketChannel sChannel) throws IOException {
+        public ClientHandler(SocketChannel sChannel) {
             this.sChannel = sChannel;
-            outputStream = sChannel.socket().getOutputStream();
-            inputStream = sChannel.socket().getInputStream();
         }
 
+        @SneakyThrows
         @Override
         public void run() {
+            sChannel.configureBlocking(false);
+            if (sChannel.isOpen()) {
+                sChannel.write(ByteBuffer.wrap(OBJECT_MAPPER.writeValueAsBytes(collectionsKeeper)));
+            }
             while (sChannel.isOpen()) {
                 try {
-                    ObjectMapper objectMapper = new ObjectMapper();
-                    Message newMessage = objectMapper.readValue(inputStream, Message.class);//неправильно
-                    System.out.println("Client object: " + newMessage);
-
-                    //outputStream.writeObject("Hello"); // send here answer to client
-                    //outputStream.flush();
+                    ByteBuffer buffer = ByteBuffer.allocate(4096);
+                    while (true) {
+                        buffer.clear();
+                        int read = sChannel.read(buffer); // non-blocking
+                        if (read < 0) {
+                            break;
+                        }
+                        if (read > 0) {
+                            ServerResponse serverResponse = handleClientMessage(OBJECT_MAPPER.readValue(buffer.array(), Message.class));
+                            sChannel.write(ByteBuffer.wrap(OBJECT_MAPPER.writeValueAsBytes(serverResponse)));
+                        }
+                        buffer.flip();
+                    }
                 } catch (Exception e) {
                     try {
-                        inputStream.close();
-                        outputStream.close();
                         sChannel.close();
-                        e.printStackTrace();
                     } catch (IOException ioException) {
                         ioException.printStackTrace();
                     }
                 }
             }
         }
+    }
+
+    private static ServerResponse handleClientMessage(Message message) {
+        CommandHandler command;
+        if (message == null) {
+            return ServerResponse.builder().error("The client sent incorrect data").build();
+        }
+        if (message.getCommandName().equals("add")) {
+            command = new CommandHandler(message.getCommandName(), message.getPerson(), collectionsKeeper);
+        } else if (message.getCommandName().equals("update")) {
+            command = new CommandHandler(message.getCommandName(), message.getCommandArgs(), message.getPerson(), collectionsKeeper);
+        } else {
+            command = new CommandHandler(message.getCommandName(), message.getCommandArgs(), collectionsKeeper);
+        }
+        return command.setRun();
+        //return ServerResponse.builder().message("Hello, i am server").command(message.getCommandName()).build();
     }
 }

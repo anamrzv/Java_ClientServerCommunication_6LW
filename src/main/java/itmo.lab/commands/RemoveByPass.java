@@ -1,10 +1,12 @@
 package itmo.lab.commands;
 
 import itmo.lab.other.Person;
-import itmo.lab.server.CollectionsKeeper;
+import itmo.lab.other.CollectionsKeeper;
+import itmo.lab.other.ServerResponse;
 
 import java.util.Iterator;
 import java.util.LinkedList;
+import java.util.List;
 
 /**
  * Команда удаляет из коллекции все объекты с passport id меньше заданного
@@ -27,20 +29,18 @@ public class RemoveByPass extends Command {
      * @return true/false Успешно ли завершилась команда
      */
     @Override
-    public boolean execute(String... args) {
+    public ServerResponse execute(List<String> args) {
         if (args != null) {
-            if (args.length != 1) {
-                System.out.println("У команды remove_by_passport_id должен быть ровно один аргумент - ID паспорта. Введите команду снова.");
-                return false;
+            if (args.size() != 1) {
+                return ServerResponse.builder().error("У команды remove_by_passport_id должен быть ровно один аргумент - ID паспорта. Введите команду снова.").command("remove_by_passport_id").build();
             }
             Long id;
             boolean result = false;
             try {
-                id = Long.parseLong(args[0]);
-                if (id < 0) return false;
+                id = Long.parseLong(args.get(0));
+                if (id < 0) return ServerResponse.builder().error("ID не может быть отрицательным числом. Введите команду снова").command("remove_by_passport_id").build();
             } catch (Exception e) {
-                System.out.println("В качестве аргумента должна быть передана строка из цифр. Введите команду снова.");
-                return false;
+                return ServerResponse.builder().error("В качестве аргумента должна быть передана строка из цифр. Введите команду снова.").command("remove_by_passport_id").build();
             }
             LinkedList<Person> people = dc.getPeople();
             Iterator<Person> iter = people.iterator();
@@ -50,12 +50,10 @@ public class RemoveByPass extends Command {
                     result = true;
                 }
             }
-            if (!result) System.out.println("Элементов с таким PassportID нет в коллекции.");
-            else System.out.println("Объекты с PassportID " + id + " успешно удалены из коллекции.");
-            return true;
+            if (!result) return ServerResponse.builder().message("Элементов с таким PassportID нет в коллекции.").command("remove_by_passport_id").build();
+            else return ServerResponse.builder().message("Объекты с PassportID " + id + " успешно удалены из коллекции.").command("remove_by_passport_id").build();
         } else {
-            System.out.println("У команды remove_by_passport_id должен быть один аргумент - ID паспорта. Введите команду снова.");
-            return false;
+            return ServerResponse.builder().error("У команды remove_by_passport_id должен быть один аргумент - ID паспорта. Введите команду снова.").command("remove_by_passport_id").build();
         }
     }
 

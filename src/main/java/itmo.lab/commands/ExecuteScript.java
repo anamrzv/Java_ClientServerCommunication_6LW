@@ -1,6 +1,7 @@
 package itmo.lab.commands;
 
-import itmo.lab.server.CollectionsKeeper;
+import itmo.lab.other.CollectionsKeeper;
+import itmo.lab.other.ServerResponse;
 import itmo.lab.server.CommandHandler;
 
 import java.io.BufferedReader;
@@ -9,7 +10,10 @@ import java.io.FileReader;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.Arrays;
+import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 /**
  * Команда получает текстовый файл со скриптом и выполняет команды оттуда
@@ -35,34 +39,33 @@ public class ExecuteScript extends Command {
      * @return true/false Успешно ли завершилась команда
      */
     @Override
-    public boolean execute(String... args) {
-        if (args.length == 1) {
+    public ServerResponse execute(List<String> args) {
+        if (args.size() == 1) {
             try {
-                Path path = Paths.get(args[0]);
+                Path path = Paths.get(args.get(0));
                 if (Files.exists(path) && !Files.isRegularFile(path)) {
-                    System.out.println("Нельзя передать специальный файл в качестве скрипта. Введите команду снова с новым аргументом.");
+                    return ServerResponse.builder().error("Нельзя передать специальный файл в качестве скрипта. Введите команду снова с новым аргументом.").command("execute_script").build();
                 } else {
-                    if (dc.getScriptNames().size() == 0) dc.addScriptName(args[0]);
+                    if (dc.getScriptNames().size() == 0) dc.addScriptName(args.get(0));
                     String dir = path.toString();
                     try (BufferedReader br = new BufferedReader(new FileReader(dir))) {
                         Map<String, Command> commands = ch.getCommands();
                         String line;
                         while ((line = br.readLine()) != null) {
                             line = line.trim();
-                            if (line.equals("execute_script " + args[0])) {
-                                System.out.println("В скрипте обнаружена рекурсия, удалите строку execute_script " + args[0]);
-                                return false;
+                            if (line.equals("execute_script " + args.get(0))) {
+                                return ServerResponse.builder().error("В скрипте обнаружена рекурсия, удалите строку execute_script " + args.get(0)).command("execute_script").build();
                             } else if (line.startsWith("execute_script")) {
-                                String cmd = ch.getCommandName(line);
-                                String[] arguments = ch.getArguments(line);
-                                if (dc.addScriptName(arguments[0])) {
+                                String cmd = getCommandName(line);
+                                List<String> arguments = getArguments(line);
+                                if (dc.addScriptName(arguments.get(0))) {
                                     Command command = commands.get(cmd);
                                     command.execute(arguments);
                                 } else
-                                    System.out.println("В одном из вызовов команды execute_script в файле обнаружена рекурсия, команда пропущена\nУдалите строку " + arguments[0] + "\n");
+                                    return ServerResponse.builder().error("В одном из вызовов команды execute_script в файле обнаружена рекурсия, команда пропущена\nУдалите строку " + arguments.get(0) + "\n").command("execute_script").build();
                             } else {
-                                String cmd = ch.getCommandName(line);
-                                String[] arguments = ch.getArguments(line);
+                                String cmd = getCommandName(line);
+                                List<String> arguments = getArguments(line);
                                 Command command = commands.get(cmd);
                                 command.execute(arguments);
                                 System.out.println();
@@ -70,23 +73,43 @@ public class ExecuteScript extends Command {
                         }
                         dc.clearScriptNames();
                     } catch (FileNotFoundException e) {
-                        System.out.println("Файл не найден. Убедитесь, что вы правильно указали путь к файлу и введите команду снова.");
-                        return false;
+                        return ServerResponse.builder().error("Файл не найден. Убедитесь, что вы правильно указали путь к файлу и введите команду снова.").command("execute_script").build();
                     } catch (Exception e) {
-                        System.out.println("Произошла ошибка при чтении команды скрипта.");
-                        return false;
+                        return ServerResponse.builder().error("Произошла ошибка при чтении команды скрипта.").command("execute_script").build();
                     }
                 }
             } catch (Exception e) {
-                System.out.println("Ошибка при обработке файла. Проверьте, что команде не был передан специальный файл.");
+                return ServerResponse.builder().error("Ошибка при обработке файла. Проверьте, что команде не был передан специальный файл.").command("execute_script").build();
             }
         } else {
-            System.out.println("У команды execute_script должен быть один аргумент - путь к файлу. Введите команду снова.");
-            return false;
+            return ServerResponse.builder().error("У команды execute_script должен быть один аргумент - путь к файлу. Введите команду снова.").command("execute_script").build();
         }
-        return true;
+        return ServerResponse.builder().message("Скрипт выполнен").command("execute_script").build();
     }
 
+    /**
+     * Метод - возвращает имя команды
+     *
+     * @param input - строка
+     * @return String - имя команды
+     */
+    public String getCommandName(String input) {
+        String[] elements = input.split(" +");
+        return elements[0].toLowerCase(); //только название команды
+    }
+
+    /**
+     * Метод - возвращает аргументы команды
+     *
+     * @param input - строка
+     * @return String[] - аргументы команды
+     */
+    public List<String> getArguments(String input) {
+        List<String> elements = Arrays.stream(input.split(" +")).collect(Collectors.toList());
+        if (elements.size() > 1) {
+            return elements.stream().skip(0).collect(Collectors.toList());
+        } else return null;
+    }
 
     /**
      * Возвращает имя команды

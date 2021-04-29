@@ -1,6 +1,9 @@
 package itmo.lab.commands;
 
-import itmo.lab.server.CollectionsKeeper;
+import itmo.lab.other.CollectionsKeeper;
+import itmo.lab.other.ServerResponse;
+
+import java.util.List;
 
 /**
  * Абстрактный класс - любая команда
@@ -27,7 +30,7 @@ public abstract class Command {
      * @param args Параметры командной строки
      * @return true/false Успешно ли завершилась команда
      */
-    public abstract boolean execute(String... args);
+    public abstract ServerResponse execute(List<String> args);
 
     /**
      * Возвращает имя команды

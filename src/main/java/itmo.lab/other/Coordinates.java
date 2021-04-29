@@ -1,11 +1,18 @@
 package itmo.lab.other;
 
+import lombok.Data;
+
+import java.io.Serializable;
 import java.util.Objects;
 
 /**
  * Координаты персоны в формате (x;y)
  */
-public class Coordinates {
+@Data
+public class Coordinates implements Serializable {
+
+    private static final long serialVersionUID = 4L;
+
     /**
      * Поле - координата х
      */

@@ -1,9 +1,11 @@
 package itmo.lab.commands;
 
+import itmo.lab.other.CollectionsKeeper;
 import itmo.lab.other.Person;
-import itmo.lab.server.CollectionsKeeper;
+import itmo.lab.other.ServerResponse;
 
 import java.util.LinkedList;
+import java.util.List;
 
 /**
  * Команда считает кол-во объектов со значением passport id меньше заданного
@@ -26,34 +28,25 @@ public class CountLessPass extends Command {
      * @return true/false Успешно ли завершилась команда
      */
     @Override
-    public boolean execute(String... args) {
-        if (args != null) {
-            if (args.length != 1) {
-                System.out.println("У команды count_less_than_passport_id должен быть ровно один аргумент - ID паспорта. Введите команду снова.");
-                return false;
-            }
-            Long id;
-            try {
-                id = Long.parseLong(args[0]);
-                if (id < 0) {
-                    System.out.println("ID паспорта не может быть отрицательным числом. Введите команду снова.");
-                    return false;
-                }
-            } catch (Exception e) {
-                System.out.println("В качестве аргумента должна быть передана строка из цифр.\n Если строка составлена правильно, то передано слишком большое число. Введите команду снова.");
-                return false;
-            }
-            LinkedList<Person> people = dc.getPeople();
-            int res = 0;
-            for (Person p : people) {
-                if (p.getPassportAsLong() < id) res++;
-            }
-            System.out.println(res + " - число элементов, значение поля passportID которых меньше " + id);
-            return true;
-        } else {
-            System.out.println("У команды count_less_than_passport_id должен быть один аргумент - ID паспорта. Введите команду снова.");
-            return false;
+    public ServerResponse execute(List<String> args) {
+        Long id;
+        if (args == null || args.size() != 1) {
+            return ServerResponse.builder().error("У команды count_less_than_passport_id должен быть один аргумент - ID паспорта. Введите команду снова.").command("count_less_than_passport_id").build();
         }
+        try {
+            id = Long.parseLong(args.get(0));
+            if (id < 0) {
+                return ServerResponse.builder().error("ID паспорта не может быть отрицательным числом. Введите команду снова.").command("count_less_than_passport_id").build();
+            }
+        } catch (Exception e) {
+            return ServerResponse.builder().error("В качестве аргумента должна быть передана строка из цифр.\n Если строка составлена правильно, то передано слишком большое число. Введите команду снова.").command("count_less_than_passport_id").build();
+        }
+        LinkedList<Person> people = dc.getPeople();
+        int res = 0;
+        for (Person p : people) {
+            if (p.getPassportAsLong() < id) res++;
+        }
+        return ServerResponse.builder().message(res + " - число элементов, значение поля passportID которых меньше " + id).command("count_less_than_passport_id").build();
     }
 
     /**

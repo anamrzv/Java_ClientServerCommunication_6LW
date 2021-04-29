@@ -1,10 +1,12 @@
 package itmo.lab.commands;
 
 import itmo.lab.other.Person;
-import itmo.lab.server.CollectionsKeeper;
+import itmo.lab.other.CollectionsKeeper;
+import itmo.lab.other.ServerResponse;
 
 import java.util.Collections;
 import java.util.LinkedList;
+import java.util.List;
 
 /**
  * Команда выводит информацию о коллекции в консоль
@@ -27,22 +29,19 @@ public class Info extends Command {
      * @return true/false Успешно ли завершилась команда
      */
     @Override
-    public boolean execute(String... args) {
+    public ServerResponse execute(List<String> args) {
         if (args == null) {
             LinkedList<Person> people = dc.getPeople();
             Collections.sort(people);
-            System.out.println("Тип коллекции: " + people.getClass());
-            System.out.println("Тип элементов: Person");
-            System.out.println("Количество элементов: " + people.size());
+            String response= "Тип коллекции: " + people.getClass()+"\nТип элементов: Person\nКоличество элементов: "+people.size();
             if (people.size() != 0) {
-                System.out.println("Дата инициализации: " + people.get(0).getParsedTime());
+                response+="\nДата инициализации: " + people.get(0).getParsedTime();
             } else {
-                System.out.println("Дата инициализации: -");
+                response+="\nДата инициализации: -";
             }
-            return true;
+            return ServerResponse.builder().message(response).command("info").build();
         } else {
-            System.out.println("У команды info нет аргументов. Введите команду снова.");
-            return false;
+            return ServerResponse.builder().error("У команды info нет аргументов. Введите команду снова.").command("info").build();
         }
     }
 

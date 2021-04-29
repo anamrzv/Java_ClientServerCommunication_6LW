@@ -1,9 +1,11 @@
 package itmo.lab.commands;
 
 import itmo.lab.other.Person;
-import itmo.lab.server.CollectionsKeeper;
+import itmo.lab.other.CollectionsKeeper;
+import itmo.lab.other.ServerResponse;
 
 import java.util.LinkedList;
+import java.util.List;
 
 /**
  * Команда очищает коллекцию
@@ -26,15 +28,13 @@ public class Clear extends Command {
      * @return true/false Успешно ли завершилась команда
      */
     @Override
-    public boolean execute(String... args) {
+    public ServerResponse execute(List<String> args) {
         if (args == null) {
             LinkedList<Person> people = dc.getPeople();
             people.clear();
-            System.out.println("Коллекция успешно очищена.");
-            return true;
+            return ServerResponse.builder().message("Коллекция успешно очищена.").command("clear").build();
         } else {
-            System.out.println("У команды clear нет аргументов. Введите команду снова.");
-            return false;
+            return ServerResponse.builder().error("У команды clear нет аргументов. Введите команду снова.").build();
         }
     }
 

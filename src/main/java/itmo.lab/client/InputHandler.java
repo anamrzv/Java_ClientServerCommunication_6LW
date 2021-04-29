@@ -1,8 +1,9 @@
 package itmo.lab.client;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
+import itmo.lab.other.CollectionsKeeper;
 import itmo.lab.other.Message;
 import itmo.lab.other.Person;
+import lombok.SneakyThrows;
 
 import java.io.BufferedReader;
 import java.io.InputStreamReader;
@@ -14,10 +15,9 @@ import java.util.stream.Collectors;
 public class InputHandler {
 
     private final HashSet<String> names = new HashSet<>();
-    private final OtherCollections collections;
+    private final CollectionsKeeper collections; // передать ее с сервера
 
     {
-        collections = new OtherCollections();
         names.add("add_if_max");
         names.add("add_if__min");
         names.add("clear");
@@ -34,12 +34,14 @@ public class InputHandler {
         names.add("update");
     }
 
-    private byte[] run() {
+    public InputHandler(CollectionsKeeper collectionsKeeper){
+        collections=collectionsKeeper;
+    }
+
+    private Message run() {
         do {
             try {
-                System.out.print(">");
-                BufferedReader br = new BufferedReader(new InputStreamReader(System.in));
-                String input = br.readLine().trim();
+                String input = getDataFromInput();
                 if (input.equalsIgnoreCase("exit")) {
                     System.out.println("Клиент закрыт");
                     System.exit(0);
@@ -47,13 +49,12 @@ public class InputHandler {
                     String cmd = getCommandName(input);
                     List<String> args = getArguments(input);
                     if (names.contains(cmd)) {
-                        ObjectMapper objectMapper = new ObjectMapper();
                         if (cmd.equals("add")) {
-                            CreatePerson creation = new CreatePerson(collections);
-                            Person newPerson = creation.setCreation(args);
-                            return objectMapper.writeValueAsBytes(new Message("add", newPerson));
+                            return createPerson(args);
+                        } else if (cmd.equals("update")){
+                            return updatePerson(args);
                         }
-                        return objectMapper.writeValueAsBytes(new Message(cmd, args));
+                        return new Message(cmd, args);
                     } else {
                         System.out.println("Пожалуйста, повторите ввод: команда не распознана");
                     }
@@ -62,6 +63,27 @@ public class InputHandler {
                 System.out.println(e + "\nНеверный формат ввода команды. Введите команду еще раз.");
             }
         } while (true);
+    }
+
+    @SneakyThrows
+    private String getDataFromInput() {
+        System.out.print(">");
+        BufferedReader br = new BufferedReader(new InputStreamReader(System.in));
+        return br.readLine().trim();
+    }
+
+    private Message createPerson(List<String> args) {
+        CreatePerson creation = new CreatePerson(collections);
+        Person newPerson = creation.setCreation(args);
+        if (newPerson==null) return null;
+        else return new Message("add", newPerson);
+    }
+
+    private Message updatePerson(List<String> args){
+        UpdatePerson update = new UpdatePerson(collections);
+        Person updatedPerson = update.setUpdate(args);
+        if (update==null) return null;
+        else return new Message("update", updatedPerson);
     }
 
     /**
@@ -84,11 +106,11 @@ public class InputHandler {
     public List<String> getArguments(String input) {
         List<String> elements = Arrays.stream(input.split(" +")).collect(Collectors.toList());
         if (elements.size() > 1) {
-            return elements.stream().skip(0).collect(Collectors.toList());
+            return elements.stream().skip(1).collect(Collectors.toList());
         } else return null;
     }
 
-    public byte[] setStart() {
+    public Message setStart() {
         return run();
     }
 }
