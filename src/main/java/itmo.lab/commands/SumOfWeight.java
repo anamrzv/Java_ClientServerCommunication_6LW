@@ -12,6 +12,8 @@ import java.util.List;
  */
 public class SumOfWeight extends Command {
 
+    private long sum = 0;
+
     /**
      * Конструктор - создание нового объекта
      *
@@ -31,10 +33,7 @@ public class SumOfWeight extends Command {
     public ServerResponse execute(List<String> args) {
         if (args == null) {
             LinkedList<Person> people = dc.getPeople();
-            long sum = 0;
-            for (Person p : people) {
-                sum += p.getWeight();
-            }
+            people.stream().forEach(x-> sum+=x.getWeight());
             return ServerResponse.builder().message(sum + " - сумма значений поля weight всех элементов коллекции").command("sum_of_weoght").build();
         } else {
             return ServerResponse.builder().error("У команды sum_of_weight нет аргументов. Введите команду еще раз.").command("sum_of_weight").build();

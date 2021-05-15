@@ -32,7 +32,6 @@ public class Info extends Command {
     public ServerResponse execute(List<String> args) {
         if (args == null) {
             LinkedList<Person> people = dc.getPeople();
-            Collections.sort(people);
             String response= "Тип коллекции: " + people.getClass()+"\nТип элементов: Person\nКоличество элементов: "+people.size();
             if (people.size() != 0) {
                 response+="\nДата инициализации: " + people.get(0).getParsedTime();

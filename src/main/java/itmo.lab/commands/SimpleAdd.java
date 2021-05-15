@@ -2,6 +2,7 @@ package itmo.lab.commands;
 
 import itmo.lab.other.CollectionsKeeper;
 import itmo.lab.other.Person;
+import itmo.lab.other.PersonSizeComparator;
 import itmo.lab.other.ServerResponse;
 
 import java.util.Collections;
@@ -34,7 +35,6 @@ public class SimpleAdd extends Command {
      */
     public ServerResponse execute(List<String> args) {
         people.add(person);
-        Collections.sort(people);
         return ServerResponse.builder().message("Объект успешно добавлен").command("add").build();
     }
 

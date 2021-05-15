@@ -1,5 +1,6 @@
 package itmo.lab.client;
 
+import itmo.lab.commands.SpecialSave;
 import itmo.lab.other.CollectionsKeeper;
 import itmo.lab.other.Message;
 import itmo.lab.other.Person;
@@ -19,7 +20,7 @@ public class InputHandler {
 
     {
         names.add("add_if_max");
-        names.add("add_if__min");
+        names.add("add_if_min");
         names.add("clear");
         names.add("count_less_than_passport_id");
         names.add("execute_script");
@@ -43,6 +44,8 @@ public class InputHandler {
             try {
                 String input = getDataFromInput();
                 if (input.equalsIgnoreCase("exit")) {
+                    SpecialSave save = new SpecialSave(collections);
+                    save.execute();
                     System.out.println("Клиент закрыт");
                     System.exit(0);
                 } else {

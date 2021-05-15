@@ -1,17 +1,20 @@
 package itmo.lab.commands;
 
-import itmo.lab.other.Person;
 import itmo.lab.other.CollectionsKeeper;
+import itmo.lab.other.Person;
+import itmo.lab.other.PersonSizeComparator;
 import itmo.lab.other.ServerResponse;
 
-import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.stream.Collectors;
 
 /**
  * Команда выводит в консоль все элементы коллекции в строковом представлении
  */
 public class Show extends Command {
+
+    private String response = "Коллекция People:";
 
     /**
      * Конструктор - создание нового объекта
@@ -30,15 +33,18 @@ public class Show extends Command {
      */
     @Override
     public ServerResponse execute(List<String> args) {
-        String response="Коллекция People:\n";
         if (args == null) {
             LinkedList<Person> people = dc.getPeople();
-            if (people.size() == 0) return ServerResponse.builder().message("Коллекция People пуста.").command("show").build();
+            if (people.size() == 0)
+                return ServerResponse.builder().message("Коллекция People пуста.").command("show").build();
             else {
-                Collections.sort(people);
-                for (Person p : people) {
-                    response+=p+"\n";
-                }
+                PersonSizeComparator comparator = new PersonSizeComparator();
+                people.stream()
+                        .sorted(comparator)
+                        .forEach(p -> response += "\n" + p);
+                people = people.stream()
+                        .sorted(comparator)
+                        .collect(Collectors.toCollection(LinkedList::new));
             }
             return ServerResponse.builder().message(response).command("show").build();
         } else {

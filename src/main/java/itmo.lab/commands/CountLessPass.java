@@ -6,6 +6,7 @@ import itmo.lab.other.ServerResponse;
 
 import java.util.LinkedList;
 import java.util.List;
+import java.util.stream.Collectors;
 
 /**
  * Команда считает кол-во объектов со значением passport id меньше заданного
@@ -42,10 +43,9 @@ public class CountLessPass extends Command {
             return ServerResponse.builder().error("В качестве аргумента должна быть передана строка из цифр.\n Если строка составлена правильно, то передано слишком большое число. Введите команду снова.").command("count_less_than_passport_id").build();
         }
         LinkedList<Person> people = dc.getPeople();
-        int res = 0;
-        for (Person p : people) {
-            if (p.getPassportAsLong() < id) res++;
-        }
+        int res = (int) people.stream()
+                .filter(x -> x.getPassportAsLong()<id)
+                .count();
         return ServerResponse.builder().message(res + " - число элементов, значение поля passportID которых меньше " + id).command("count_less_than_passport_id").build();
     }
 

@@ -15,6 +15,7 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.LinkedList;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 /**
  * Обработчик файла, которым заполняется коллекция при запуске
@@ -24,7 +25,7 @@ public class DocumentHandler {
     /**
      * Поле - связный список объектов Person
      */
-    private final LinkedList<Person> people;
+    private LinkedList<Person> people;
 
     /**
      * Поле - обработчик командз

@@ -83,7 +83,7 @@ public class CommandHandler {
         c = new RemoveByID(ck);
         commands.put("remove_by_id",c);
         c = new RemoveByPass(ck);
-        commands.put("remove_by_passport_id",c);
+        commands.put("remove_all_by_passport_id",c);
         c = new Show(ck);
         commands.put("show",c);
         c = new SumOfWeight(ck);
@@ -102,6 +102,9 @@ public class CommandHandler {
                 return c.execute(commandArgs);
             case "add_if_min":
                 c = commands.get("add_if_min");
+                return c.execute(commandArgs);
+            case "remove_all_by_passport_id":
+                c = commands.get("remove_all_by_passport_id");
                 return c.execute(commandArgs);
             case "clear":
                 c = commands.get("clear");

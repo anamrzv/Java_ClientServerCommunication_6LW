@@ -32,7 +32,7 @@ public class RemoveByPass extends Command {
     public ServerResponse execute(List<String> args) {
         if (args != null) {
             if (args.size() != 1) {
-                return ServerResponse.builder().error("У команды remove_by_passport_id должен быть ровно один аргумент - ID паспорта. Введите команду снова.").command("remove_by_passport_id").build();
+                return ServerResponse.builder().error("У команды remove_all_by_passport_id должен быть ровно один аргумент - ID паспорта. Введите команду снова.").command("remove_by_passport_id").build();
             }
             Long id;
             boolean result = false;
@@ -43,19 +43,25 @@ public class RemoveByPass extends Command {
                 return ServerResponse.builder().error("В качестве аргумента должна быть передана строка из цифр. Введите команду снова.").command("remove_by_passport_id").build();
             }
             LinkedList<Person> people = dc.getPeople();
-            Iterator<Person> iter = people.iterator();
-            while (iter.hasNext()) {
-                if (iter.next().getPassportAsLong().equals(id)) {
-                    iter.remove();
-                    result = true;
+            int count=0;
+            do{
+                Person person = people.stream()
+                        .filter(x -> x.getPassportAsLong().equals(id))
+                        .findFirst()
+                        .orElse(null);
+                if (person!=null) {
+                    people.remove(person);
+                    count++;
                 }
-            }
-            if (!result) return ServerResponse.builder().message("Элементов с таким PassportID нет в коллекции.").command("remove_by_passport_id").build();
-            else return ServerResponse.builder().message("Объекты с PassportID " + id + " успешно удалены из коллекции.").command("remove_by_passport_id").build();
+                else break;
+            }while (true);
+            if (count!=0) return ServerResponse.builder().message("Объекты с PassportID " + id + " успешно удалены из коллекции.").command("remove_by_passport_id").build();
+            return ServerResponse.builder().message("Элементов с таким PassportID нет в коллекции.").command("remove_by_passport_id").build();
         } else {
-            return ServerResponse.builder().error("У команды remove_by_passport_id должен быть один аргумент - ID паспорта. Введите команду снова.").command("remove_by_passport_id").build();
+            return ServerResponse.builder().error("У команды remove_all_by_passport_id должен быть один аргумент - ID паспорта. Введите команду снова.").command("remove_by_passport_id").build();
         }
     }
+
 
     /**
      * Возвращает имя команды

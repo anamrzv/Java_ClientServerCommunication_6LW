@@ -4,6 +4,7 @@ import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import itmo.lab.other.Person;
 import itmo.lab.other.CollectionsKeeper;
+import itmo.lab.other.PersonSizeComparator;
 import itmo.lab.other.ServerResponse;
 
 import java.io.File;
@@ -25,19 +26,24 @@ public class SpecialSave {
     }
 
     public ServerResponse execute() {
-        String dir = System.getenv("output");
+        String dir = System.getenv("output6");
         if (dir==null) {
-            dir = "C:/Users/Ana/Programming/lab-work-6-gradle/src/main/resources";
+            dir = "C:/Users/Ana/Programming/lab-work-6-gradle/src/main/resources/output.txt";
         }
         try (PrintWriter pw = new PrintWriter(new File(dir))) {
             LinkedList<Person> people = collectionsKeeper.getPeople();
             GsonBuilder builder = new GsonBuilder();
             Gson gson = builder.create();
             String jsonString;
-            for (Person p : people) {
+            PersonSizeComparator comparator = new PersonSizeComparator();
+            people.stream()
+                    .sorted(comparator)
+                    .map(p->gson.toJson(p))
+                    .forEach(x->pw.write(x+"\n"));
+            /*for (Person p : people) {
                 jsonString = gson.toJson(p);
                 pw.write(jsonString + "\n");
-            }
+            }*/
         } catch (FileNotFoundException e) {
             return ServerResponse.builder().error("Файл для записи не найден, проверьте существование переменной окружения. Создан файл по умолчанию.").build();
         }

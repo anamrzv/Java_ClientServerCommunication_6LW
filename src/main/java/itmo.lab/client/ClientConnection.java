@@ -10,6 +10,7 @@ import itmo.lab.other.ServerResponse;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.net.PortUnreachableException;
 import java.net.Socket;
 import java.net.UnknownHostException;
 import java.nio.ByteBuffer;
@@ -33,19 +34,23 @@ public class ClientConnection {
 
                 System.out.println("Клиент запущен");
 
-                ByteBuffer buffer = ByteBuffer.allocate(4096);
-                if (clientSocket.isConnected()) {
-                    try {
-                        buffer.clear();
-                        int serverAnswer = in.read(buffer.array());
-                        if (serverAnswer > 0) {
-                            CollectionsKeeper ck = OBJECT_MAPPER.readValue(buffer.array(), CollectionsKeeper.class);
-                            ih = new InputHandler(ck);
+                ByteBuffer buffer = ByteBuffer.allocate(5120);
+                try{
+                    if (clientSocket.isConnected()) {
+                        try {
+                            buffer.clear();
+                            int serverAnswer = in.read(buffer.array());
+                            if (serverAnswer > 0) {
+                                CollectionsKeeper ck = OBJECT_MAPPER.readValue(buffer.array(), CollectionsKeeper.class);
+                                ih = new InputHandler(ck);
+                            }
+                            buffer.flip();
+                        } catch (Exception e) {
+                            System.out.println(e.getMessage());
                         }
-                        buffer.flip();
-                    } catch (Exception e) {
-                        System.out.println(e.getMessage());
                     }
+                }catch (Exception e) {
+                    System.out.println("Отсутствует подключение к серверу");
                 }
                 while (clientSocket.isConnected()) {
                     try {
@@ -63,13 +68,17 @@ public class ClientConnection {
                             } else System.out.println(sr.getError());
                         }
                         buffer.flip();
-                    } catch (Exception e) {
-                        System.out.println(e.getMessage());
+                    } catch (IOException e) {
+                        System.out.println("Отсутствует подключение к серверу");
                     }
                 }
+            } catch (PortUnreachableException e) {
+                System.out.println("Не удалось получить данные по указанному порту/сервер не доступен");
             } catch (UnknownHostException e) {
                 System.out.println("Неизвестный хост");
                 e.printStackTrace();
+            } catch (IOException e){
+                System.out.println("Ошибка при подключении к серверу");
             } finally {
                 System.out.println("Клиент закрыт");
                 clientSocket.close();
@@ -77,7 +86,7 @@ public class ClientConnection {
                 out.close();
             }
         } catch (IOException e) {
-            System.err.println("Ошибка клиента" + e.getMessage());
+            System.err.println("Ошибка клиента " + e.getMessage());
         }
     }
 }

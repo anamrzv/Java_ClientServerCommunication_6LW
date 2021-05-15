@@ -13,6 +13,7 @@ import java.util.Map;
 public class Help extends Command {
 
     private final CommandHandler ch;
+    private String response = "Доступные вам команды:\n";
 
     /**
      * Конструктор - создание нового объекта
@@ -33,10 +34,8 @@ public class Help extends Command {
     public ServerResponse execute(List<String> args) {
         if (args == null) {
             Map<String, Command> commands = ch.getCommands();
-            String response = "Доступные вам команды:\n";
-            for (Command c : commands.values()) {
-                response+=c.getDescription()+"\n";
-            }
+            commands.values().stream()
+                    .forEach(c-> response+=c.getDescription()+"\n");
             response+="add {json_element} : добавить новый элемент в коллекцию";
             return ServerResponse.builder().message(response).command("help").build();
         } else {

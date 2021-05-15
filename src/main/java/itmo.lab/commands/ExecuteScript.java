@@ -107,7 +107,7 @@ public class ExecuteScript extends Command {
     public List<String> getArguments(String input) {
         List<String> elements = Arrays.stream(input.split(" +")).collect(Collectors.toList());
         if (elements.size() > 1) {
-            return elements.stream().skip(0).collect(Collectors.toList());
+            return elements.stream().skip(1).collect(Collectors.toList());
         } else return null;
     }
 

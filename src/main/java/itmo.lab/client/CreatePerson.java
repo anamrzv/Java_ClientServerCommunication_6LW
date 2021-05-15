@@ -3,11 +3,14 @@ package itmo.lab.client;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.JsonSyntaxException;
+import itmo.lab.commands.AddIfMax;
+import itmo.lab.commands.AddIfMin;
 import itmo.lab.other.CollectionsKeeper;
 import itmo.lab.other.Color;
 import itmo.lab.other.Coordinates;
 import itmo.lab.other.Location;
 import itmo.lab.other.Person;
+import lombok.Data;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -17,6 +20,7 @@ import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+@Data
 public class CreatePerson {
     /**
      * Поле - отображение объектов Location
@@ -25,11 +29,28 @@ public class CreatePerson {
 
     private final CollectionsKeeper collectionsKeeper;
 
+    private final AddIfMax maxAdd;
+    private final AddIfMin minAdd;
+
     public CreatePerson(CollectionsKeeper dc) {
-        this.collectionsKeeper =dc;
+        this.collectionsKeeper = dc;
+        maxAdd = null;
+        minAdd = null;
     }
 
-    private Person createPerson(List<String> args){
+    public CreatePerson(CollectionsKeeper dc, AddIfMax addIfMax) {
+        this.collectionsKeeper = dc;
+        maxAdd = addIfMax;
+        minAdd = null;
+    }
+
+    public CreatePerson(CollectionsKeeper dc, AddIfMin addIfMin) {
+        this.collectionsKeeper = dc;
+        maxAdd = null;
+        minAdd = addIfMin;
+    }
+
+    private Person createPerson(List<String> args) {
         Person newPers = new Person();
         readyLocations = collectionsKeeper.getLocations();
 
@@ -62,7 +83,7 @@ public class CreatePerson {
                 System.out.println("Введите координаты персоны. Это обязательное поле.");
                 inputCoordinates(br, newPers);
 
-                System.out.println("Элемент " + newPers.getName() + " добавлен в коллекцию");
+                if (maxAdd==null) System.out.println("Элемент " + newPers.getName() + " добавлен в коллекцию");
                 newPers.setTime();
                 newPers.setID();
                 return newPers;
@@ -97,6 +118,7 @@ public class CreatePerson {
                     } else {
                         pers.setTime();
                         pers.setID();
+                        if (maxAdd==null) System.out.println("Элемент " + pers.getName() + " добавлен в коллекцию");
                         boolean alreadyLocation = false;
                         Location currentLocation = pers.getLocation();
                         for (Location l : readyLocations.values()) {
@@ -485,7 +507,7 @@ public class CreatePerson {
         inputCoordinates(br, p);
     }
 
-    public Person setCreation(List<String> args){
+    public Person setCreation(List<String> args) {
         return createPerson(args);
     }
 }

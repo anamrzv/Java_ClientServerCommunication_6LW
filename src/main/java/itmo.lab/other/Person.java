@@ -244,8 +244,8 @@ public class Person implements Comparable<Person>, Serializable {
      */
     @Override
     public int compareTo(Person p) {
-        if (this.id < p.id) return -1;
-        else return 1;
+        int result = this.name.compareTo(p.name);
+        return result;
     }
 
     /**
