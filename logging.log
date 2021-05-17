@@ -1,0 +1,18 @@
+2021-05-16 23:23:07,742 INFO [main] i.l.s.ServerConnection [ServerConnection.java:32] Selector opened
+2021-05-16 23:23:07,747 INFO [main] i.l.s.ServerConnection [ServerConnection.java:35] Server started
+2021-05-16 23:23:07,748 INFO [main] i.l.s.ServerConnection [ServerConnection.java:39] Port bounded
+2021-05-16 23:23:40,130 INFO [main] i.l.s.ServerConnection [ServerConnection.java:53] New connection created: /127.0.0.1:54813
+2021-05-16 23:23:40,225 INFO [main] i.l.s.ServerConnection [ServerConnection.java:59] Document loaded
+2021-05-16 23:23:40,348 INFO [main] i.l.s.ServerConnection [ServerConnection.java:66] Document sent
+2021-05-16 23:23:43,637 INFO [main] i.l.s.ServerConnection [ServerConnection.java:75] Got message
+2021-05-16 23:23:46,828 INFO [main] i.l.s.ServerConnection [ServerConnection.java:75] Got message
+2021-05-16 23:23:46,849 INFO [main] i.l.s.ServerConnection [ServerConnection.java:80] Server is closing
+2021-05-17 13:59:05,512 INFO [main] i.l.s.ServerConnection [ServerConnection.java:32] Selector opened
+2021-05-17 13:59:05,514 INFO [main] i.l.s.ServerConnection [ServerConnection.java:35] Server started
+2021-05-17 13:59:05,514 INFO [main] i.l.s.ServerConnection [ServerConnection.java:39] Port bounded
+2021-05-17 13:59:10,407 INFO [main] i.l.s.ServerConnection [ServerConnection.java:53] New connection created: /127.0.0.1:52813
+2021-05-17 13:59:10,453 INFO [main] i.l.s.ServerConnection [ServerConnection.java:59] Document loaded
+2021-05-17 13:59:10,500 INFO [main] i.l.s.ServerConnection [ServerConnection.java:66] Document sent
+2021-05-17 13:59:15,571 INFO [main] i.l.s.ServerConnection [ServerConnection.java:76] Got message Message(commandName=help, commandArgs=null, person=null)
+2021-05-17 13:59:18,567 INFO [main] i.l.s.ServerConnection [ServerConnection.java:76] Got message Message(commandName=exit, commandArgs=null, person=null)
+2021-05-17 13:59:18,567 INFO [main] i.l.s.ServerConnection [ServerConnection.java:80] Server is closing

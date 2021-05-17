@@ -16,6 +16,9 @@ import java.net.Socket;
 import java.net.UnknownHostException;
 import java.nio.ByteBuffer;
 
+/**
+ * Главный клиентский класс, создает потоки ввода-вывода и устанавливает соединение
+ */
 public class ClientConnection {
     private static Socket clientSocket;
     private static OutputStream out;
@@ -27,7 +30,7 @@ public class ClientConnection {
         try {
             try {
                 InputHandler ih = null;
-                clientSocket = new Socket("localhost", 6592);
+                clientSocket = new Socket("localhost", 6593);
                 System.out.println("Создан сокет");
 
                 out = clientSocket.getOutputStream();

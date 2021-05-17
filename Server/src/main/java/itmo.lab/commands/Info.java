@@ -1,7 +1,7 @@
 package itmo.lab.commands;
 
-import itmo.lab.other.CollectionsKeeper;
 import itmo.lab.other.Person;
+import itmo.lab.other.CollectionsKeeper;
 import itmo.lab.other.ServerResponse;
 
 import java.util.LinkedList;
@@ -31,11 +31,11 @@ public class Info extends Command {
     public ServerResponse execute(List<String> args) {
         if (args == null) {
             LinkedList<Person> people = dc.getPeople();
-            String response = "Тип коллекции: " + people.getClass() + "\nТип элементов: Person\nКоличество элементов: " + people.size();
+            String response= "Тип коллекции: " + people.getClass()+"\nТип элементов: Person\nКоличество элементов: "+people.size();
             if (people.size() != 0) {
-                response += "\nДата инициализации: " + people.get(0).getParsedTime();
+                response+="\nДата инициализации: " + people.get(0).getParsedTime();
             } else {
-                response += "\nДата инициализации: -";
+                response+="\nДата инициализации: -";
             }
             return ServerResponse.builder().message(response).command("info").build();
         } else {

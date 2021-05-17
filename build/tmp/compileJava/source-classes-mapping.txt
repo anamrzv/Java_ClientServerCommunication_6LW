@@ -1,0 +1,63 @@
+itmo.lab/commands/CountLessPass.java
+ itmo.lab.commands.CountLessPass
+itmo.lab/commands/SumOfWeight.java
+ itmo.lab.commands.SumOfWeight
+itmo.lab/other/CollectionsKeeper.java
+ itmo.lab.other.CollectionsKeeper
+itmo.lab/commands/AddIfMax.java
+ itmo.lab.commands.AddIfMax
+itmo.lab/other/Color.java
+ itmo.lab.other.Color
+itmo.lab/commands/Help.java
+ itmo.lab.commands.Help
+itmo.lab/commands/Info.java
+ itmo.lab.commands.Info
+itmo.lab/server/ServerConnection.java
+ itmo.lab.server.ServerConnection
+itmo.lab/client/UpdatePerson.java
+ itmo.lab.client.UpdatePerson
+itmo.lab/client/ClientConnection.java
+ itmo.lab.client.ClientConnection
+itmo.lab/other/Person.java
+ itmo.lab.other.Person
+itmo.lab/server/DocumentHandler.java
+ itmo.lab.server.DocumentHandler
+itmo.lab/commands/Command.java
+ itmo.lab.commands.Command
+itmo.lab/commands/Show.java
+ itmo.lab.commands.Show
+itmo.lab/commands/ExecuteScript.java
+ itmo.lab.commands.ExecuteScript
+itmo.lab/other/Location.java
+ itmo.lab.other.Location
+itmo.lab/commands/SpecialSave.java
+ itmo.lab.commands.SpecialSave
+itmo.lab/commands/AddIfMin.java
+ itmo.lab.commands.AddIfMin
+itmo.lab/other/Coordinates.java
+ itmo.lab.other.Coordinates
+itmo.lab/client/CreatePerson.java
+ itmo.lab.client.CreatePerson
+itmo.lab/server/CommandHandler.java
+ itmo.lab.server.CommandHandler
+itmo.lab/commands/RemoveByPass.java
+ itmo.lab.commands.RemoveByPass
+itmo.lab/other/Message.java
+ itmo.lab.other.Message
+itmo.lab/client/InputHandler.java
+ itmo.lab.client.InputHandler
+itmo.lab/commands/SimpleAdd.java
+ itmo.lab.commands.SimpleAdd
+itmo.lab/other/ServerResponse.java
+ itmo.lab.other.ServerResponse
+ itmo.lab.other.ServerResponse$ServerResponseBuilder
+itmo.lab/commands/Update.java
+ itmo.lab.commands.Update
+itmo.lab/commands/Head.java
+ itmo.lab.commands.Head
+itmo.lab/commands/Clear.java
+ itmo.lab.commands.Clear
+itmo.lab/other/PersonSizeComparator.java
+ itmo.lab.other.PersonSizeComparator
+itmo.lab/commands/RemoveByID.java
+ itmo.lab.commands.RemoveByID
