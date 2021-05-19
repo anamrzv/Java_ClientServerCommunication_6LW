@@ -30,7 +30,7 @@ public class ClientConnection {
         try {
             try {
                 InputHandler ih = null;
-                clientSocket = new Socket("localhost", 6593);
+                clientSocket = new Socket("localhost", 6595);
                 System.out.println("Создан сокет");
 
                 out = clientSocket.getOutputStream();
