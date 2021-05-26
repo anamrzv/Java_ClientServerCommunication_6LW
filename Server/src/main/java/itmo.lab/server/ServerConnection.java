@@ -8,8 +8,7 @@ import itmo.lab.other.CollectionsKeeper;
 import itmo.lab.other.Message;
 import itmo.lab.other.ServerResponse;
 import lombok.SneakyThrows;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.extern.slf4j.Slf4j;
 
 import java.io.IOException;
 import java.net.InetSocketAddress;
@@ -19,9 +18,9 @@ import java.nio.channels.ServerSocketChannel;
 import java.nio.channels.SocketChannel;
 
 
+@Slf4j
 public class ServerConnection {
 
-    private static final Logger logger = LoggerFactory.getLogger(itmo.lab.server.ServerConnection.class);
     private static boolean listenerIsAlive = true;
     private static final ObjectMapper OBJECT_MAPPER = new ObjectMapper().findAndRegisterModules().configure(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS, false).configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
     private static final CollectionsKeeper collectionsKeeper = new CollectionsKeeper();
@@ -30,31 +29,56 @@ public class ServerConnection {
 
     public static void main(String[] args) {
         ServerListener serverListener;
+        int port = 6667;
         try {
+
+            Runtime.getRuntime().addShutdownHook(new Thread(() -> {
+                System.out.println("Экстренное закрытие сервера.");
+                SpecialSave save = new SpecialSave(collectionsKeeper);
+                save.execute();
+            }));
+
+            if (args.length != 0) {
+                try {
+                    port = Integer.parseInt(args[0]);
+                } catch (Exception e) {
+                    System.out.println("Порт должен быть числом");
+                    System.exit(-1);
+                }
+                if (port <= 0) {
+                    System.out.println("Порт не может быть отрицательным.");
+                    System.exit(-1);
+                } else if (port > 65535) {
+                    System.out.println("Порт должен лежать в пределах 1-65535");
+                    System.out.println(-1);
+                }
+            }
             selector = Selector.open();
-            logger.info("Selector opened");
-            serverListener = new ServerListener();
-            logger.info("Server started");
+            log.info("Selector opened");
+            serverListener = new ServerListener(port);
+            log.info("Server started");
             System.out.println("Server started");
             serverListener.start();
         } catch (IOException e) {
-            e.printStackTrace();
+            System.out.println("Ошибка при создании сервера");
         }
     }
 
     static class ServerListener extends Thread {
         private final ServerSocketChannel ssChannel;
+        int port;
 
-        public ServerListener() throws IOException {
+        public ServerListener(int port) throws IOException {
+            this.port = port;
             ssChannel = ServerSocketChannel.open();
             ssChannel.configureBlocking(false);
             try {
-                ssChannel.socket().bind(new InetSocketAddress(6595));
-                logger.info("Port bounded");
+                ssChannel.socket().bind(new InetSocketAddress(port));
+                log.info("Port bounded");
             } catch (IOException e) {
-                System.out.println("Can't listen port");
-                logger.error("Can't listen port");
-                System.exit(1);
+                System.out.println("Невозможно прослушать порт. Выберите другой и перезапустите сервер.");
+                log.error("Can't listen port");
+                System.exit(-1);
             }
         }
 
@@ -68,16 +92,16 @@ public class ServerConnection {
                         SocketChannel socketChannel = ssChannel.accept();
                         if (socketChannel != null) {
                             System.out.printf("New connection created: %s%n", socketChannel.getRemoteAddress());
-                            logger.info("New connection created: {}", socketChannel.getRemoteAddress());
+                            log.info("New connection created: {}", socketChannel.getRemoteAddress());
                             socketChannel.configureBlocking(false);
                             connectionCount += 1;
                             if (connectionCount == 1) {
                                 DocumentHandler dh = new DocumentHandler(collectionsKeeper);
                                 try {
                                     dh.setRead();
-                                    logger.info("Document loaded");
+                                    log.info("Document loaded");
                                 } catch (Exception e) {
-                                    logger.error("Document wasn't loaded");
+                                    log.error("Document wasn't loaded");
                                     System.out.println("Ошибка при загрузке коллекции из документа");
                                 }
                             }
@@ -86,12 +110,12 @@ public class ServerConnection {
                     } catch (IOException e) {
                         try {
                             System.out.println("Соединение с клиентом отсутствует");
-                            logger.error("Connection with client is lost");
+                            log.error("Connection with client is lost");
                             listenerIsAlive = false;
                             ssChannel.close();
                         } catch (IOException ioException) {
                             System.out.println("Ошибка при закрытии сервера");
-                            logger.error("Error while closing server");
+                            log.error("Error while closing server");
                         }
                     }
                 }
@@ -112,7 +136,7 @@ public class ServerConnection {
             sChannel.configureBlocking(false);
             if (sChannel.isOpen()) {
                 sChannel.write(ByteBuffer.wrap(OBJECT_MAPPER.writeValueAsBytes(collectionsKeeper)));
-                logger.info("Document sent");
+                log.info("Document sent");
             }
             while (sChannel.isOpen()) {
                 try {
@@ -125,19 +149,13 @@ public class ServerConnection {
                         }
                         if (read > 0) {
                             ServerResponse serverResponse = handleClientMessage(OBJECT_MAPPER.readValue(buffer.array(), Message.class));
-                            logger.info("Got {}", OBJECT_MAPPER.readValue(buffer.array(), Message.class));
+                            log.info("Got {}", OBJECT_MAPPER.readValue(buffer.array(), Message.class));
                             sChannel.write(ByteBuffer.wrap(OBJECT_MAPPER.writeValueAsBytes(serverResponse)));
-                            if (serverResponse.getMessage().equals("Server is disconnected")) {
-                                logger.info("Client {} disconnected", sChannel.getRemoteAddress());
-                                System.out.println("Клиент "+sChannel.getRemoteAddress()+" отсоединен");
+                            if (serverResponse.getMessage()!=null && serverResponse.getMessage().equals("Disconnected successfully")) {
+                                log.info("Client {} disconnected", sChannel.getRemoteAddress());
+                                System.out.println("Клиент " + sChannel.getRemoteAddress() + " отсоединен");
+                                if (serverResponse.getError() != null) System.out.println(serverResponse.getError());
                                 sChannel.close();
-                                if (connectionCount == 0) {
-                                    listenerIsAlive = false;
-                                    logger.info("Server closed");
-                                    System.out.println("Сервер закрыт");
-                                    System.exit(0);
-                                    break;
-                                }
                                 break;
                             }
                         }
@@ -145,10 +163,12 @@ public class ServerConnection {
                     }
                 } catch (Exception e) {
                     try {
-                        System.out.println("Соединение с клиентом прекращено");
+                        System.out.println("Соединение с клиентом" + sChannel.getRemoteAddress() + " экстренно прекращено");
+                        SpecialSave save = new SpecialSave(collectionsKeeper);
+                        save.execute();
                         sChannel.close();
                     } catch (IOException ioException) {
-                        System.out.println("Ошибка при закрытии сервера");
+                        System.out.println("Ошибка при закрытии клиента");
                     }
                 }
             }
@@ -158,7 +178,7 @@ public class ServerConnection {
     /**
      * Обработка сообщения от клиента
      *
-     * @param message
+     * @param message Данные о команде
      * @return ServerResponse
      */
     private static ServerResponse handleClientMessage(Message message) {
@@ -168,9 +188,9 @@ public class ServerConnection {
         }
         if (message.getCommandName().equalsIgnoreCase("exit")) {
             SpecialSave save = new SpecialSave(collectionsKeeper);
-            save.execute();
+            String error = save.execute();
             connectionCount -= 1;
-            return ServerResponse.builder().message("Server is disconnected").build();
+            return ServerResponse.builder().error(error).message("Disconnected successfully").build();
         } else if (message.getCommandName().equals("add")) {
             command = new CommandHandler(message.getCommandName(), message.getPerson(), collectionsKeeper);
         } else if (message.getCommandName().equals("update")) {

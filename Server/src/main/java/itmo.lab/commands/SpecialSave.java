@@ -25,7 +25,7 @@ public class SpecialSave {
         this.collectionsKeeper = dc;
     }
 
-    public ServerResponse execute() {
+    public String execute() {
         String dir = System.getenv("output6");
         if (dir == null) {
             dir = "C:/Users/Ana/Programming/lab-work-6-gradle/src/main/resources/output.txt";
@@ -39,9 +39,9 @@ public class SpecialSave {
                     .sorted(comparator)
                     .map(gson::toJson)
                     .forEach(x -> pw.write(x + "\n"));
+            return null;
         } catch (FileNotFoundException e) {
-            return ServerResponse.builder().error("Файл для записи не найден, проверьте существование переменной окружения. Создан файл по умолчанию.").build();
+            return "Ошибка при сохранении коллекции в файл.";
         }
-        return ServerResponse.builder().message("Коллекция сохранена в файл " + dir).build();
     }
 }

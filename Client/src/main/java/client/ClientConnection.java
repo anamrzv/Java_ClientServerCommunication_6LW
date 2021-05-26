@@ -27,15 +27,30 @@ public class ClientConnection {
     private static final ObjectMapper OBJECT_MAPPER = new ObjectMapper().findAndRegisterModules().registerModule(new JavaTimeModule()).configure(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS, false).configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
 
     public static void main(String[] args) {
+        int port = 6667;
         try {
             try {
+                if (args.length != 0) {
+                    try {
+                        port = Integer.parseInt(args[0]);
+                    } catch (Exception e) {
+                        System.out.println("Порт должен быть числом");
+                        System.exit(-1);
+                    }
+                    if (port <= 0) {
+                        System.out.println("Порт не может быть отрицательным.");
+                        System.exit(-1);
+                    } else if (port > 65535) {
+                        System.out.println("Порт должен лежать в пределах 1-65535");
+                        System.out.println(-1);
+                    }
+                }
                 InputHandler ih = null;
-                clientSocket = new Socket("localhost", 6595);
+                clientSocket = new Socket("localhost", port);
                 System.out.println("Создан сокет");
 
                 out = clientSocket.getOutputStream();
                 in = clientSocket.getInputStream();
-
                 System.out.println("Клиент запущен");
 
                 ByteBuffer buffer = ByteBuffer.allocate(5120);
@@ -50,11 +65,19 @@ public class ClientConnection {
                             }
                             buffer.flip();
                         } catch (Exception e) {
-                            System.out.println(e.getMessage());
+                            System.out.println("Ошибка при получении сообщения от сервера");
                         }
                     }
                 } catch (Exception e) {
-                    System.out.println("Отсутствует подключение к серверу");
+                    System.out.println("Отсутствует подключение к серверу.");
+                    try {
+                        in.close();
+                        out.close();
+                        clientSocket.close();
+                        System.exit(0);
+                    } catch (NullPointerException ne) {
+                        System.out.println("Клиентский сокет не был создан");
+                    }
                 }
                 while (clientSocket.isConnected()) {
                     try {
@@ -64,30 +87,25 @@ public class ClientConnection {
                         out.flush();
                         if (message.getCommandName().equalsIgnoreCase("exit")) {
                             System.out.println("Client kills connection");
-                            Thread.sleep(2000);
-                            int serverAnswer = in.read(buffer.array());
-                            if (serverAnswer > 0) {
-                                ServerResponse sr = OBJECT_MAPPER.readValue(buffer.array(), ServerResponse.class);
-                                if (sr.getError() == null) {
-                                    System.out.println(sr.getMessage());
-                                } else System.out.println(sr.getError());
-                            }
+                            Thread.sleep(1000);
+                            handleRequest(buffer);
                             System.exit(0);
                         }
-
                         buffer.clear();
-                        int serverAnswer = in.read(buffer.array());
-                        if (serverAnswer > 0) {
-                            ServerResponse sr = OBJECT_MAPPER.readValue(buffer.array(), ServerResponse.class);
-                            if (sr.getError() == null) {
-                                System.out.println(sr.getMessage());
-                            } else System.out.println(sr.getError());
-                        }
+                        handleRequest(buffer);
                         buffer.flip();
                     } catch (IOException e) {
-                        System.out.println("Отсутствует подключение к серверу");
+                        System.out.println("Отсутствует подключение к серверу. Клиент отключается.");
+                        try {
+                            in.close();
+                            out.close();
+                            clientSocket.close();
+                            System.exit(0);
+                        } catch (NullPointerException ne) {
+                            System.out.println("Клиентский сокет не был создан");
+                        }
                     } catch (InterruptedException e) {
-                        e.printStackTrace();
+                        System.out.println("Ожидающий поток был прерван");
                     } catch (NullPointerException e) {
                         System.out.println("Команда не может быть обработана.");
                     }
@@ -98,19 +116,30 @@ public class ClientConnection {
                 System.out.println("Неизвестный хост");
                 e.printStackTrace();
             } catch (IOException e) {
-                System.out.println("Ошибка при подключении к серверу");
+                System.out.println("Ошибка при подключении к серверу. Выберите другой порт.");
+                System.exit(-1);
             } finally {
-                System.out.println("Клиент закрыт");
                 try {
                     clientSocket.close();
                     in.close();
                     out.close();
+                    System.out.println("Клиент закрыт");
                 } catch (NullPointerException e) {
                     System.out.println("Клиентский сокет не был создан");
                 }
             }
         } catch (IOException e) {
             System.err.println("Ошибка клиента " + e.getMessage());
+        }
+    }
+
+    private static void handleRequest(ByteBuffer buffer) throws IOException {
+        int serverAnswer = in.read(buffer.array());
+        if (serverAnswer > 0) {
+            ServerResponse sr = OBJECT_MAPPER.readValue(buffer.array(), ServerResponse.class);
+            if (sr.getError() == null) {
+                System.out.println(sr.getMessage());
+            } else System.out.println(sr.getError());
         }
     }
 }

@@ -56,8 +56,10 @@ public class InputHandler {
                     System.out.println("Пожалуйста, повторите ввод: команда не распознана");
                 }
 
+            } catch (NullPointerException ne) {
+                System.out.println("Экстренное закрытие клиента");
             } catch (Exception e) {
-                System.out.println(e + "\nНеверный формат ввода команды. Введите команду еще раз.");
+                System.out.println("Неверный формат ввода команды. Введите команду еще раз.");
             }
         } while (true);
     }
